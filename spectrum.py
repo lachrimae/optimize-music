@@ -1,11 +1,11 @@
-from numpy.fft import ifft
-
-# 20 Hz - 23 kHz
-# how many cents is that?
+from numpy import fft
+import math
 
 class Spectrum(list):
-    TOTAL_NUMBER_OF_CENTS = 1000000
-    BLUEPRINT = [0.0] * TOTAL_NUMBER_OF_CENTS
+    LENGTH_OF_PLAY = 0.05
+    HERZ_INTERVAL = 0.5
+    MAX_HERZ = 44100
+    BLUEPRINT = [0.0] * math.floor((1 + (LENGTH_OF_PLAY * MAX_HERZ / HERZ_INTERVAL))
 
     def __init__(self):
         super().__init__(self.BLUEPRINT)
@@ -48,7 +48,7 @@ class Spectrum(list):
 
     def as_wave(self):
         formattedForNumpy = [0.0, *self]
-        return ifft(self)
+        return fft.ifft(self)
 
 # A Voice is a spectrum relative to a fundamental, which must remain at amplitude 1.0.
 class Voice(Spectrum):
