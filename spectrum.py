@@ -2,10 +2,10 @@ from numpy import fft
 import math
 
 class Spectrum(list):
-    LENGTH_OF_PLAY = 0.05
+    LENGTH_OF_PLAY = 2.0 # in seconds
     HERZ_INTERVAL = 0.5
     MAX_HERZ = 44100
-    BLUEPRINT = [0.0] * math.floor((1 + (LENGTH_OF_PLAY * MAX_HERZ / HERZ_INTERVAL))
+    BLUEPRINT = [0.0] * math.floor((1 + (LENGTH_OF_PLAY * MAX_HERZ / HERZ_INTERVAL)))
 
     def __init__(self):
         super().__init__(self.BLUEPRINT)
@@ -48,7 +48,7 @@ class Spectrum(list):
 
     def as_wave(self):
         formattedForNumpy = [0.0, *self]
-        return fft.ifft(self)
+        return list(map(lambda x: float(x), fft.ifft(formattedForNumpy)))
 
 # A Voice is a spectrum relative to a fundamental, which must remain at amplitude 1.0.
 class Voice(Spectrum):
