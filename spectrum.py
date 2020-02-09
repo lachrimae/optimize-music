@@ -48,7 +48,7 @@ class Spectrum(list):
 
     def as_wave(self):
         formattedForNumpy = [0.0, *self]
-        return list(map(lambda x: float(x), fft.ifft(formattedForNumpy)))
+        return list(map(lambda x: x.real, fft.ifft(formattedForNumpy)))
 
 # A Voice is a spectrum relative to a fundamental, which must remain at amplitude 1.0.
 class Voice(Spectrum):
