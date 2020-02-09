@@ -29,13 +29,14 @@ class Spectrum(list):
                 return first
             else:
                 return container2[key2]
-        shared_freqs = intersection(self.nonzero_freqs, other.nonzero_freqs)
-        unique_keys = difference(union(self.nonzero_freqs, other.nonzero_freqs), shared_keys)
+        shared_freqs = self.nonzero_freqs & other.nonzero_freqs
+        unique_freqs = self.nonzero_freqs ^ other.nonzero_freqs
         shared_dict = {freq: self[freq] + other[freq] for freq in shared_freqs} 
         unique_dict = {freq: getEither(self, freq, other, freq) for freq in unique_freqs}
         output = Spectrum()
         for (freq, amp) in {**unique_dict, **shared_dict}.items():
             output[freq] = amp
+        return output
 
     def __mul__(self, scalar : float):
         if type(scalar) != float:
