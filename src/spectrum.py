@@ -4,26 +4,37 @@ import math
 
 # A Spectrum() is essentially just a list()
 class Spectrum(list):
-    # Here we memoize the zeroed-out prototype for an empty Spectrum()
-    BLUEPRINT = [0.0] * 44100
+    # Here we memoize the zeroed-out prototype for an empty Spectrum().
+    _BLUEPRINT = [0.0] * 44100
 
+    # TODO: write a kwarg copy constructor.
     def __init__(self):
-        # TODO: write a copy constructor.
-        super().__init__(self.BLUEPRINT)
+        super().__init__(self._BLUEPRINT)
         # We should expect most frequencies to be at zero amplitude most of the time.
         # The following variable keeps track of the "support" of our vector, and we can restrict
         # many calculations to just these frequencies.
         self.nonzero_freqs = set()
+        self._cached_wave = None
 
+    # TODO: Consider the non-associativity and non-metricity of floating-point arithmetic. Is there
+    # anything here that is going to cause problems?
     def __setitem__(self, freq : int, amp : float):
         if type(freq) != int or type(amp) != float:
             raise TypeError("Frequencies are integers and amplitudes must be floats.")
         elif amp < 0:
             raise ValueError("Amplitudes must be nonzero.")
+        # A modification of a frequency outside of the support of the vector
+        # will change our cached time-domain wave.
+        # Test for setting the value to zero because I expect that will be somewhat common.
         if freq not in self.nonzero_freqs and amp != 0.0:
-            self.nonzero_freqs.add(freq)
-        elif amp == 0.0:
-            self.nonzero_freqs.remove(freq)
+                self._as_wave = None
+                self.nonzero_freqs.add(freq)
+        # Assume that it will be rare to set the amplitude of a frequency in the support to its
+        # current amplitude; i.e., delete the cached wave more eagerly than the last case.
+        elif freq in self.nonzero_freqs:
+                self._as_wave = None
+                if amp == 0.0:
+                    self.nonzero_freqs.remove(freq)
         super().__setitem__(freq, amp)
 
     # Vector addition.
@@ -68,9 +79,11 @@ class Spectrum(list):
             return sum([s1[freq] * s2[freq] for freq in s1.nonzero_freqs])
 
     def as_wave(self):
-        # set the DC value at index 0 to 0.0
-        formattedForNumpy = np.asarray([0.0, *self], dtype=np.int16)
-        return list(map(lambda x: x.real, fft.ifft(formattedForNumpy)))
+        if not self._as_wave is None:
+            # set the DC value at index 0 to 0.0
+            formattedForNumpy = np.asarray([0.0, *self], dtype=np.int16)
+            self._as_wave = list(map(lambda x: x.real, fft.ifft(formattedForNumpy)))
+        return self._as_wave
 
     # Define the general p-norm
     def __abs__(self, p):
